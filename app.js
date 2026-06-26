@@ -1,4 +1,6 @@
 
+function triggerFileInput(){var el=document.getElementById('fInp');if(el)el.click();}
+
 var FC={apiKey:"AIzaSyAie0hXA1ZYs9ocgZ1V6lseNWk8oWejI_c",authDomain:"capacitaciones-luis-arceo-srl.firebaseapp.com",projectId:"capacitaciones-luis-arceo-srl",storageBucket:"capacitaciones-luis-arceo-srl.firebasestorage.app",messagingSenderId:"114036642100",appId:"1:114036642100:web:9e10fd8ac5406a7a9d1561"};
 firebase.initializeApp(FC);
 var db=firebase.firestore();
@@ -94,13 +96,30 @@ function rPadTbl(){
 }
 
 function showAP(){
-  var h='<div class="mhd"><div class="mtit">Agregar persona</div><button class="cbtn" onclick="cm()">X</button></div>';
-  h+='<div class="gbar"></div>';
-  h+='<div class="fg"><label class="fl">Nombre y Apellido</label><input class="fi" id="nNom" placeholder="Nombre completo"></div>';
-  h+='<div class="fg"><label class="fl">DNI</label><input class="fi" id="nDni" type="number" placeholder="Numero de DNI"></div>';
-  h+='<div class="fg"><label class="fl">Sector</label><select class="fs" id="nSec"><option value="">Selecciona...</option><option>Cocina y Maestranza</option><option>Trailer y Flota Pesada</option><option>Administracion</option></select></div>';
-  h+='<button class="btn bbr" style="width:100%" onclick="saveP()">Guardar</button>';
-  om(h);
+  var d=document.getElementById("modc");
+  d.innerHTML="";
+  var hd=document.createElement("div");hd.className="mhd";
+  hd.innerHTML='<div class="mtit">Agregar persona</div><button class="cbtn" onclick="cm()">X</button>';
+  d.appendChild(hd);
+  var gb=document.createElement("div");gb.className="gbar";d.appendChild(gb);
+  function addField(lbl,id,type,ph){
+    var fg=document.createElement("div");fg.className="fg";
+    var l=document.createElement("label");l.className="fl";l.textContent=lbl;
+    var inp=document.createElement("input");inp.className="fi";inp.id=id;inp.placeholder=ph;if(type)inp.type=type;
+    fg.appendChild(l);fg.appendChild(inp);d.appendChild(fg);
+  }
+  addField("Nombre y Apellido","nNom","text","Nombre completo");
+  addField("DNI","nDni","number","Numero de DNI");
+  var fg=document.createElement("div");fg.className="fg";
+  var l=document.createElement("label");l.className="fl";l.textContent="Sector";
+  var sel=document.createElement("select");sel.className="fs";sel.id="nSec";
+  ["","Cocina y Maestranza","Trailer y Flota Pesada","Administracion"].forEach(function(v){
+    var o=document.createElement("option");o.value=v;o.textContent=v||"Selecciona...";sel.appendChild(o);
+  });
+  fg.appendChild(l);fg.appendChild(sel);d.appendChild(fg);
+  var btn=document.createElement("button");btn.className="btn bbr";btn.style.width="100%";btn.textContent="Guardar";btn.onclick=saveP;
+  d.appendChild(btn);
+  document.getElementById("mov").style.display="flex";
 }
 
 async function saveP(){
@@ -180,27 +199,53 @@ function editCap(id){
 
 function oCM(){
   var c=S.ec;
-  var h='<div class="mhd"><div class="mtit">'+(c.id?"Editar":"Nueva")+' Capacitacion</div><button class="cbtn" onclick="cm()">X</button></div>';
-  h+='<div class="gbar"></div>';
-  h+='<div class="fg"><label class="fl">Titulo</label><input class="fi" id="cTit" value="'+esc(c.titulo||"")+'" placeholder="Nombre de la capacitacion"></div>';
-  h+='<div class="fg"><label class="fl">Archivo PDF o PowerPoint</label>';
-  h+='<div class="fdrop" onclick="document.getElementById('fInp').click()">';
-  h+='<div style="font-size:28px;margin-bottom:6px">&#128194;</div>';
-  h+='<div id="fLbl" style="font-weight:600">'+(c.fileName?"OK: "+esc(c.fileName):"Subir PDF o PPT (max 15MB)")+'</div>';
-  h+='<input type="file" id="fInp" accept=".pdf,.ppt,.pptx" onchange="hFU(event)"></div></div>';
-  h+='<div><div style="font-size:12px;font-weight:700;color:#6b5c4e;margin-bottom:10px">6 preguntas de evaluacion</div><div id="qcont">';
+  var d=document.getElementById("modc");
+  d.innerHTML="";
+
+  var hd=document.createElement("div");hd.className="mhd";
+  hd.innerHTML='<div class="mtit">'+(c.id?"Editar":"Nueva")+' Capacitacion</div><button class="cbtn" onclick="cm()">X</button>';
+  d.appendChild(hd);
+  var gb=document.createElement("div");gb.className="gbar";d.appendChild(gb);
+
+  var fg1=document.createElement("div");fg1.className="fg";
+  var l1=document.createElement("label");l1.className="fl";l1.textContent="Titulo";
+  var inp1=document.createElement("input");inp1.className="fi";inp1.id="cTit";inp1.placeholder="Nombre de la capacitacion";inp1.value=c.titulo||"";
+  fg1.appendChild(l1);fg1.appendChild(inp1);d.appendChild(fg1);
+
+  var fg2=document.createElement("div");fg2.className="fg";
+  var l2=document.createElement("label");l2.className="fl";l2.textContent="Archivo PDF o PowerPoint";
+  var drop=document.createElement("div");drop.className="fdrop";drop.onclick=triggerFileInput;
+  var ico=document.createElement("div");ico.style.fontSize="28px";ico.style.marginBottom="6px";ico.textContent="📂";
+  var lbl=document.createElement("div");lbl.id="fLbl";lbl.style.fontWeight="600";lbl.textContent=c.fileName?"OK: "+c.fileName:"Subir PDF o PPT (max 15MB)";
+  var finp=document.createElement("input");finp.type="file";finp.id="fInp";finp.accept=".pdf,.ppt,.pptx";finp.style.display="none";finp.onchange=hFU;
+  drop.appendChild(ico);drop.appendChild(lbl);drop.appendChild(finp);
+  fg2.appendChild(l2);fg2.appendChild(drop);d.appendChild(fg2);
+
+  var qdiv=document.createElement("div");
+  var qlbl=document.createElement("div");qlbl.style.cssText="font-size:12px;font-weight:700;color:#6b5c4e;margin-bottom:10px";qlbl.textContent="6 preguntas de evaluacion";
+  qdiv.appendChild(qlbl);
+  var qcont=document.createElement("div");qcont.id="qcont";
   c.preguntas.forEach(function(q,qi){
-    h+='<div class="qbox"><div class="qnum">Pregunta '+(qi+1)+'</div>';
-    h+='<input type="text" id="qt'+qi+'" value="'+esc(q.texto||"")+'" placeholder="Escribe la pregunta">';
+    var qb=document.createElement("div");qb.className="qbox";
+    var qn=document.createElement("div");qn.className="qnum";qn.textContent="Pregunta "+(qi+1);
+    var qt=document.createElement("input");qt.type="text";qt.id="qt"+qi;qt.value=q.texto||"";qt.placeholder="Escribe la pregunta";
+    qb.appendChild(qn);qb.appendChild(qt);
     [0,1,2].forEach(function(oi){
-      h+='<div class="orow"><input type="radio" name="cr'+qi+'" value="'+oi+'"'+(q.respuesta===oi?' checked':'')+' onchange="sc('+qi+','+oi+')">';
-      h+='<input type="text" id="qo'+qi+'i'+oi+'" value="'+esc(q.opciones[oi]||"")+'" placeholder="Opcion '+(oi+1)+'"></div>';
+      var or=document.createElement("div");or.className="orow";
+      var radio=document.createElement("input");radio.type="radio";radio.name="cr"+qi;radio.value=oi;
+      if(q.respuesta===oi)radio.checked=true;
+      radio.addEventListener("change",function(){sc(qi,oi);});
+      var oinp=document.createElement("input");oinp.type="text";oinp.id="qo"+qi+"i"+oi;oinp.value=q.opciones[oi]||"";oinp.placeholder="Opcion "+(oi+1);
+      or.appendChild(radio);or.appendChild(oinp);qb.appendChild(or);
     });
-    h+='<div style="font-size:11px;color:#a09080;margin-top:4px">Marca el circulo de la respuesta correcta</div></div>';
+    var hint=document.createElement("div");hint.style.cssText="font-size:11px;color:#a09080;margin-top:4px";hint.textContent="Marca el circulo de la respuesta correcta";
+    qb.appendChild(hint);qcont.appendChild(qb);
   });
-  h+='</div></div>';
-  h+='<button class="btn bgn" style="width:100%;margin-top:4px" onclick="saveCap()">Guardar capacitacion</button>';
-  om(h);
+  qdiv.appendChild(qcont);d.appendChild(qdiv);
+
+  var sbtn=document.createElement("button");sbtn.className="btn bgn";sbtn.style.cssText="width:100%;margin-top:4px";sbtn.textContent="Guardar capacitacion";sbtn.onclick=saveCap;
+  d.appendChild(sbtn);
+  document.getElementById("mov").style.display="flex";
 }
 
 function sc(qi,oi){if(S.ec&&S.ec.preguntas[qi])S.ec.preguntas[qi].respuesta=parseInt(oi);}
@@ -322,32 +367,40 @@ function rUCaps(){
 function verCap(id){
   var c=S.caps.find(function(x){return x.id===id;});if(!c)return;
   var key=S.u.dni+"_"+c.id,cu=S.cump[key],ap=!!(cu&&cu.aprobado);
-  var h='<div class="mhd"><div class="mtit">'+esc(c.titulo)+'</div><button class="cbtn" onclick="cm()">X</button></div>';
-  h+='<div class="gbar"></div>';
+  var d=document.getElementById("modc");d.innerHTML="";
+  var hd=document.createElement("div");hd.className="mhd";
+  hd.innerHTML='<div class="mtit">'+esc(c.titulo)+'</div><button class="cbtn" onclick="cm()">X</button>';
+  d.appendChild(hd);
+  var gb=document.createElement("div");gb.className="gbar";d.appendChild(gb);
   if(c.fileData){
+    var fdiv=document.createElement("div");fdiv.style.marginBottom="16px";
+    var ftit=document.createElement("div");ftit.style.cssText="font-size:12px;font-weight:700;color:#6b5c4e;margin-bottom:8px";
     if(c.fileType&&c.fileType.indexOf("pdf")>=0){
-      h+='<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:700;color:#6b5c4e;margin-bottom:8px">CONTENIDO DEL CURSO</div>';
-      h+='<div style="background:#f5f2ee;border:1px solid #e0d8cc;border-radius:8px;overflow:hidden">';
-      h+='<embed src="'+c.fileData+'" type="application/pdf" width="100%" height="480px" style="display:block"></div></div>';
+      ftit.textContent="CONTENIDO DEL CURSO";
+      var fw=document.createElement("div");fw.style.cssText="background:#f5f2ee;border:1px solid #e0d8cc;border-radius:8px;overflow:hidden";
+      var emb=document.createElement("embed");emb.src=c.fileData;emb.type="application/pdf";emb.width="100%";emb.height="480px";emb.style.display="block";
+      fw.appendChild(emb);fdiv.appendChild(ftit);fdiv.appendChild(fw);
     }else{
-      h+='<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:700;color:#6b5c4e;margin-bottom:8px">MATERIAL DE ESTUDIO</div>';
-      h+='<div style="background:#faf3e8;border:1px solid #e0d8cc;border-radius:8px;padding:20px;text-align:center">';
-      h+='<div style="font-size:14px;font-weight:600;color:#3a2317;margin-bottom:14px">'+esc(c.fileName)+'</div>';
-      h+='<a href="'+c.fileData+'" download="'+esc(c.fileName)+'" style="display:inline-block;padding:10px 20px;background:#3a2317;color:white;border-radius:7px;font-size:13px;font-weight:700;text-decoration:none">Descargar</a>';
-      h+='</div></div>';
+      ftit.textContent="MATERIAL DE ESTUDIO";
+      var fw=document.createElement("div");fw.style.cssText="background:#faf3e8;border:1px solid #e0d8cc;border-radius:8px;padding:20px;text-align:center";
+      var fn=document.createElement("div");fn.style.cssText="font-size:14px;font-weight:600;color:#3a2317;margin-bottom:14px";fn.textContent=c.fileName;
+      var dl=document.createElement("a");dl.href=c.fileData;dl.download=c.fileName;dl.style.cssText="display:inline-block;padding:10px 20px;background:#3a2317;color:white;border-radius:7px;font-size:13px;font-weight:700;text-decoration:none";dl.textContent="Descargar";
+      fw.appendChild(fn);fw.appendChild(dl);fdiv.appendChild(ftit);fdiv.appendChild(fw);
     }
-  }else{
-    h+='<div style="background:#f0f4f8;border-radius:8px;padding:20px;text-align:center;color:#a0aec0;margin-bottom:16px">Sin archivo adjunto</div>';
+    d.appendChild(fdiv);
   }
   if(ap){
-    h+='<div class="apbanner"><div style="font-size:28px;margin-bottom:4px">&#127891;</div>';
-    h+='<div style="font-weight:800;color:#1a6632">Capacitacion aprobada!</div>';
-    h+='<div style="font-size:12px;color:#2d6e44;margin-top:3px">Nota: '+cu.nota+'% - '+cu.fecha+'</div></div>';
+    var ab=document.createElement("div");ab.className="apbanner";
+    ab.innerHTML='<div style="font-size:28px;margin-bottom:4px">&#127891;</div><div style="font-weight:800;color:#1a6632">Capacitacion aprobada!</div><div style="font-size:12px;color:#2d6e44;margin-top:3px">Nota: '+cu.nota+'% - '+cu.fecha+'</div>';
+    d.appendChild(ab);
   }else{
-    h+='<button class="btn bbr" style="width:100%;padding:13px;font-size:15px" onclick="startQ('+JSON.stringify(c.id)+')">Rendir evaluacion</button>';
-    h+='<div style="font-size:12px;color:#6b5c4e;text-align:center;margin-top:8px">Se necesita 70% o mas para aprobar</div>';
+    var rbtn=document.createElement("button");rbtn.className="btn bbr";rbtn.style.cssText="width:100%;padding:13px;font-size:15px";rbtn.textContent="Rendir evaluacion";
+    var cid=c.id;rbtn.onclick=function(){startQ(cid);};
+    d.appendChild(rbtn);
+    var hint=document.createElement("div");hint.style.cssText="font-size:12px;color:#6b5c4e;text-align:center;margin-top:8px";hint.textContent="Se necesita 70% o mas para aprobar";
+    d.appendChild(hint);
   }
-  om(h);
+  document.getElementById("mov").style.display="flex";
 }
 
 function startQ(id){
@@ -358,23 +411,33 @@ function startQ(id){
 
 function rQ(){
   var q=S.quiz,p=q.preguntas[q.step],sel=q.resp[q.step],L=["A","B","C"];
-  var h='<div class="mhd"><div class="mtit">Evaluacion - '+(q.step+1)+' de '+q.preguntas.length+'</div><button class="cbtn" onclick="cm()">X</button></div>';
-  h+='<div class="gbar"></div>';
-  h+='<div class="pb" style="margin-bottom:20px;height:6px"><div class="pf" style="width:'+Math.round(((q.step+1)/q.preguntas.length)*100)+'%"></div></div>';
-  h+='<div style="font-size:15px;font-weight:700;color:#3a2317;margin-bottom:18px;line-height:1.45">'+esc(p.texto)+'</div>';
+  var d=document.getElementById("modc");d.innerHTML="";
+  var hd=document.createElement("div");hd.className="mhd";
+  hd.innerHTML='<div class="mtit">Evaluacion - '+(q.step+1)+' de '+q.preguntas.length+'</div><button class="cbtn" onclick="cm()">X</button>';
+  d.appendChild(hd);
+  var gb=document.createElement("div");gb.className="gbar";d.appendChild(gb);
+  var pb=document.createElement("div");pb.className="pb";pb.style.cssText="margin-bottom:20px;height:6px";
+  var pf=document.createElement("div");pf.className="pf";pf.style.width=Math.round(((q.step+1)/q.preguntas.length)*100)+"%";
+  pb.appendChild(pf);d.appendChild(pb);
+  var qt=document.createElement("div");qt.style.cssText="font-size:15px;font-weight:700;color:#3a2317;margin-bottom:18px;line-height:1.45";qt.textContent=p.texto;
+  d.appendChild(qt);
   p.opciones.forEach(function(op,oi){
-    h+='<div class="qo'+(sel===oi?" sel":"")+'" onclick="sa('+oi+')">';
-    h+='<div class="ql">'+L[oi]+'</div><span>'+esc(op)+'</span></div>';
+    var opt=document.createElement("div");opt.className="qo"+(sel===oi?" sel":"");
+    var ltr=document.createElement("div");ltr.className="ql";ltr.textContent=L[oi];
+    var txt=document.createElement("span");txt.textContent=op;
+    opt.appendChild(ltr);opt.appendChild(txt);
+    opt.onclick=function(){sa(oi);};
+    d.appendChild(opt);
   });
-  h+='<div style="display:flex;gap:10px;margin-top:18px">';
-  if(q.step>0)h+='<button class="btn bol" onclick="qP()">Anterior</button>';
+  var btnrow=document.createElement("div");btnrow.style.cssText="display:flex;gap:10px;margin-top:18px";
+  if(q.step>0){var pb2=document.createElement("button");pb2.className="btn bol";pb2.textContent="Anterior";pb2.onclick=qP;btnrow.appendChild(pb2);}
   if(q.step<q.preguntas.length-1){
-    h+='<button class="btn bbr" style="flex:1" onclick="qN()"'+(sel===null?' disabled':'')+'>Siguiente</button>';
+    var nb=document.createElement("button");nb.className="btn bbr";nb.style.flex="1";nb.textContent="Siguiente";if(sel===null)nb.disabled=true;nb.onclick=qN;btnrow.appendChild(nb);
   }else{
-    h+='<button class="btn bgn" style="flex:1" onclick="subQ()"'+(sel===null?' disabled':'')+'>Finalizar</button>';
+    var fb=document.createElement("button");fb.className="btn bgn";fb.style.flex="1";fb.textContent="Finalizar";if(sel===null)fb.disabled=true;fb.onclick=subQ;btnrow.appendChild(fb);
   }
-  h+='</div>';
-  om(h);
+  d.appendChild(btnrow);
+  document.getElementById("mov").style.display="flex";
 }
 
 function sa(oi){S.quiz.resp[S.quiz.step]=oi;rQ();}
@@ -392,16 +455,18 @@ async function subQ(){
     try{await db.collection("cumplimientos").doc(key).set(data);S.cump[key]=data;}
     catch(ex){console.error(ex);}finally{hl();}
   }
-  var h='<div style="text-align:center;padding:20px 10px">';
-  h+='<div style="font-size:60px;margin-bottom:12px">'+(ap?"&#127881;":"&#128532;")+'</div>';
-  h+='<div style="font-size:52px;font-weight:900;margin-bottom:6px;color:'+(ap?"#1a6632":"#8b1a1a")+'">'+nota+'%</div>';
-  h+='<div style="font-size:18px;font-weight:800;margin-bottom:10px;color:'+(ap?"#1a6632":"#8b1a1a")+'">'+(ap?"Aprobado!":"No aprobado")+'</div>';
-  h+='<div style="font-size:14px;color:#6b5c4e;line-height:1.5">'+cor+' respuestas correctas de '+q.preguntas.length+'. ';
-  h+=(ap?"Capacitacion completada!":"Se necesita 70% para aprobar.")+'</div>';
-  h+='<div style="margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">';
-  if(!ap)h+='<button class="btn bol" onclick="startQ('+JSON.stringify(q.id)+')">Intentar de nuevo</button>';
-  h+='<button class="btn bbr" onclick="cm();rUCaps()">Volver</button></div></div>';
-  om(h);
+  var d=document.getElementById("modc");d.innerHTML="";
+  var rs=document.createElement("div");rs.style.cssText="text-align:center;padding:20px 10px";
+  var ico=document.createElement("div");ico.style.cssText="font-size:60px;margin-bottom:12px";ico.textContent=ap?"🎉":"😔";
+  var sc=document.createElement("div");sc.style.cssText="font-size:52px;font-weight:900;margin-bottom:6px;color:"+(ap?"#1a6632":"#8b1a1a");sc.textContent=nota+"%";
+  var tl=document.createElement("div");tl.style.cssText="font-size:18px;font-weight:800;margin-bottom:10px;color:"+(ap?"#1a6632":"#8b1a1a");tl.textContent=ap?"Aprobado!":"No aprobado";
+  var msg=document.createElement("div");msg.style.cssText="font-size:14px;color:#6b5c4e;line-height:1.5";msg.textContent=cor+" respuestas correctas de "+q.preguntas.length+". "+(ap?"Capacitacion completada!":"Se necesita 70% para aprobar.");
+  var br=document.createElement("div");br.style.cssText="margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap";
+  if(!ap){var rb=document.createElement("button");rb.className="btn bol";rb.textContent="Intentar de nuevo";var qid=q.id;rb.onclick=function(){startQ(qid);};br.appendChild(rb);}
+  var vb=document.createElement("button");vb.className="btn bbr";vb.textContent="Volver";vb.onclick=function(){cm();rUCaps();};br.appendChild(vb);
+  rs.appendChild(ico);rs.appendChild(sc);rs.appendChild(tl);rs.appendChild(msg);rs.appendChild(br);
+  d.appendChild(rs);
+  document.getElementById("mov").style.display="flex";
 }
 
 function rLogros(){
