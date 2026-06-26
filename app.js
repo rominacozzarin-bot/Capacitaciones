@@ -248,7 +248,7 @@ function oCM(){
   var fg2=document.createElement("div");fg2.className="fg";
   var l2=document.createElement("label");l2.className="fl";l2.textContent="Archivo PDF o PowerPoint";
   var drop=document.createElement("div");drop.className="fdrop";drop.onclick=triggerFileInput;
-  var ico=document.createElement("div");ico.style.fontSize="28px";ico.style.marginBottom="6px";ico.textContent="📂";
+  var ico=document.createElement("div");ico.style.fontSize="28px";ico.style.marginBottom="6px";ico.textContent="\uD83D\uDCC2";
   var lbl=document.createElement("div");lbl.id="fLbl";lbl.style.fontWeight="600";lbl.textContent=c.fileName?"OK: "+c.fileName:"Subir PDF o PPT (max 15MB)";
   var finp=document.createElement("input");finp.type="file";finp.id="fInp";finp.accept=".pdf,.ppt,.pptx";finp.style.display="none";finp.onchange=hFU;
   drop.appendChild(ico);drop.appendChild(lbl);drop.appendChild(finp);
@@ -509,5 +509,85 @@ async function subQ(){
   }
   var d=document.getElementById("modc");d.innerHTML="";
   var rs=document.createElement("div");rs.style.cssText="text-align:center;padding:20px 10px";
-  var ico=document.createElement("div");ico.style.cssText="font-size:60px;margin-bottom:12px";ico.textContent=ap?"🎉":"😔";
-  var sc=document.createElement("div");sc.style.css
+  var ico=document.createElement("div");ico.style.cssText="font-size:60px;margin-bottom:12px";ico.textContent=ap?"\uD83C\uDF89":"\uD83D\uDE14";
+  var sc=document.createElement("div");sc.style.cssText="font-size:52px;font-weight:900;margin-bottom:6px;color:"+(ap?"#1a6632":"#8b1a1a");sc.textContent=nota+"%";
+  var tl=document.createElement("div");tl.style.cssText="font-size:18px;font-weight:800;margin-bottom:10px;color:"+(ap?"#1a6632":"#8b1a1a");tl.textContent=ap?"Aprobado!":"No aprobado";
+  var msg=document.createElement("div");msg.style.cssText="font-size:14px;color:#6b5c4e;line-height:1.5";msg.textContent=cor+" respuestas correctas de "+q.preguntas.length+". "+(ap?"Capacitacion completada!":"Se necesita 70% para aprobar.");
+  var br=document.createElement("div");br.style.cssText="margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap";
+  if(!ap){var rb=document.createElement("button");rb.className="btn bol";rb.textContent="Intentar de nuevo";var qid=q.id;rb.onclick=function(){startQ(qid);};br.appendChild(rb);}
+  var vb=document.createElement("button");vb.className="btn bbr";vb.textContent="Volver";vb.onclick=function(){cm();rUCaps();};br.appendChild(vb);
+  rs.appendChild(ico);rs.appendChild(sc);rs.appendChild(tl);rs.appendChild(msg);rs.appendChild(br);
+  d.appendChild(rs);
+  document.getElementById("mov").style.display="flex";
+}
+
+function rLogros(){
+  var u=S.u;
+  var userSector=u.sector;
+  var filteredCaps=S.caps.filter(function(c){
+    if(!c.sectores||c.sectores.length===0)return true;
+    return c.sectores.indexOf(userSector)>=0;
+  });
+  var caps=filteredCaps.map(function(c){var key=u.dni+"_"+c.id,cu=S.cump[key];return{c:c,cu:cu,ap:!!(cu&&cu.aprobado)};});
+  var apd=caps.filter(function(x){return x.ap;}),pend=caps.filter(function(x){return!x.ap;});
+  var pct=filteredCaps.length>0?Math.round((apd.length/filteredCaps.length)*100):0;
+  var h='<div class="card" style="text-align:center;padding:22px">';
+  h+='<div style="font-size:13px;color:#6b5c4e;font-weight:600;margin-bottom:6px">TU PROGRESO</div>';
+  h+='<div style="font-size:50px;font-weight:900;color:'+(pct===100?"#1a6632":"#3a2317")+'">'+pct+'%</div>';
+  h+='<div class="pb" style="margin:14px 0;height:10px"><div class="pf'+(pct===100?" full":"")+'" style="width:'+pct+'%"></div></div>';
+  h+='<div style="font-size:13px;color:#6b5c4e">'+apd.length+' de '+filteredCaps.length+' completadas</div>';
+  if(pct===100)h+='<div style="margin-top:10px;font-size:13px;font-weight:700;color:#1a6632">Completaste todas las capacitaciones!</div>';
+  h+='</div>';
+  if(apd.length){
+    h+='<div class="card"><div class="ctit">Aprobadas</div>';
+    apd.forEach(function(x){
+      h+='<div class="trc" style="cursor:default;border-color:#a8d5b5;background:#f6fbf8">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
+      h+='<div><h3 style="color:#1a6632">'+esc(x.c.titulo)+'</h3>';
+      h+='<div class="tmeta"><span>Nota: '+x.cu.nota+'%</span><span>'+(x.cu.fecha||"")+'</span></div></div>';
+      h+='<span class="bdg bgn2">Aprobada</span></div></div>';
+    });
+    h+='</div>';
+  }
+  if(pend.length){
+    h+='<div class="card"><div class="ctit">Pendientes</div>';
+    var pendCont=document.createElement("div");pendCont.className="card";
+    var pendTit=document.createElement("div");pendTit.className="ctit";pendTit.textContent="Pendientes";pendCont.appendChild(pendTit);
+    pend.forEach(function(x){
+      var card=document.createElement("div");card.className="trc";
+      card.onclick=(function(id){return function(){verCap(id);};})(x.c.id);
+      var row=document.createElement("div");row.style.cssText="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px";
+      var info=document.createElement("div");
+      var h3=document.createElement("h3");h3.textContent=x.c.titulo;
+      var meta=document.createElement("div");meta.className="tmeta";
+      var sp=document.createElement("span");sp.textContent="Toca para ver y rendir";meta.appendChild(sp);
+      info.appendChild(h3);info.appendChild(meta);
+      var bdg=document.createElement("span");bdg.className="bdg byl";bdg.textContent="Pendiente";
+      row.appendChild(info);row.appendChild(bdg);card.appendChild(row);pendCont.appendChild(card);
+    });
+    document.getElementById("cont").appendChild(pendCont);
+  }
+  if(!S.caps.length)h+='<div class="card"><div class="empty"><div class="eico">&#128237;</div><div class="etit">Sin capacitaciones aun</div></div></div>';
+  document.getElementById("cont").innerHTML=h;
+}
+
+function dCSV(rows,fn){
+  var lines=[];
+  rows.forEach(function(r){
+    var cells=r.map(function(c){return '"'+String(c).replace(/"/g,"''")+'"';});
+    lines.push(cells.join(","));
+  });
+  var blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;a.download=fn;a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+}
+
+loadS().then(function(){
+  hl();
+  document.getElementById("loginScreen").style.display="flex";
+}).catch(function(ex){
+  console.error(ex);
+  document.getElementById("lmsg").textContent="Error al conectar. Recarga la pagina.";
+});
