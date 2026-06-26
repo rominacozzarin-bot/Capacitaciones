@@ -85,14 +85,23 @@ function rPad(){
 
 function rPadTbl(){
   if(!S.pad.length)return '<div class="empty"><div class="eico">&#128100;</div><div class="etit">Sin personal cargado</div></div>';
-  var h='<div class="twrap"><table><thead><tr><th>Nombre</th><th>DNI</th><th>Sector</th><th></th></tr></thead><tbody>';
+  var wrap=document.createElement("div");wrap.className="twrap";
+  var tbl=document.createElement("table");
+  tbl.innerHTML='<thead><tr><th>Nombre</th><th>DNI</th><th>Sector</th><th></th></tr></thead>';
+  var tbody=document.createElement("tbody");
   S.pad.forEach(function(p){
-    h+='<tr><td><strong>'+esc(p.nombre)+'</strong></td><td>'+esc(p.dni)+'</td>';
-    h+='<td><span class="bdg bbrn">'+esc(p.sector)+'</span></td>';
-    h+='<td><button class="btn brd bsm" onclick="delP('+JSON.stringify(p.dni)+')">X</button></td></tr>';
+    var tr=document.createElement("tr");
+    var td1=document.createElement("td");td1.innerHTML='<strong>'+esc(p.nombre)+'</strong>';
+    var td2=document.createElement("td");td2.textContent=p.dni;
+    var td3=document.createElement("td");td3.innerHTML='<span class="bdg bbrn">'+esc(p.sector)+'</span>';
+    var td4=document.createElement("td");
+    var btn=document.createElement("button");btn.className="btn brd bsm";btn.textContent="X";
+    btn.onclick=(function(dni){return function(){delP(dni);};})(p.dni);
+    td4.appendChild(btn);
+    tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);tr.appendChild(td4);tbody.appendChild(tr);
   });
-  h+='</tbody></table></div>';
-  return h;
+  tbl.appendChild(tbody);wrap.appendChild(tbl);
+  return wrap.outerHTML;
 }
 
 function showAP(){
@@ -169,20 +178,30 @@ function rACaps(){
 
 function rCapsList(){
   if(!S.caps.length)return '<div class="empty"><div class="eico">&#128193;</div><div class="etit">Sin capacitaciones</div></div>';
-  var h="";
+  var cont=document.createElement("div");
   S.caps.forEach(function(c){
-    h+='<div class="trc">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">';
-    h+='<div style="flex:1;min-width:0"><h3>'+esc(c.titulo)+'</h3>';
-    h+='<div class="tmeta">';
-    if(c.fileName)h+='<span>'+esc(c.fileName)+'</span>';
-    h+='<span>'+(c.preguntas?c.preguntas.length:0)+' preguntas</span></div></div>';
-    h+='<div style="display:flex;gap:6px;flex-shrink:0">';
-    h+='<button class="btn bol bsm" onclick="editCap('+JSON.stringify(c.id)+')">Editar</button>';
-    h+='<button class="btn brd bsm" onclick="delCap('+JSON.stringify(c.id)+')">X</button>';
-    h+='</div></div></div>';
+    var card=document.createElement("div");card.className="trc";
+    var row=document.createElement("div");row.style.cssText="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px";
+    var info=document.createElement("div");info.style.cssText="flex:1;min-width:0";
+    var h3=document.createElement("h3");h3.textContent=c.titulo;
+    var meta=document.createElement("div");meta.className="tmeta";
+    if(c.fileName){var sf=document.createElement("span");sf.textContent=c.fileName;meta.appendChild(sf);}
+    var sq=document.createElement("span");sq.textContent=(c.preguntas?c.preguntas.length:0)+" preguntas";meta.appendChild(sq);
+    if(c.sectores&&c.sectores.length>0){
+      var ss=document.createElement("span");ss.style.cssText="color:#b8860b;font-weight:600";ss.textContent="Sectores: "+c.sectores.join(", ");meta.appendChild(ss);
+    }else{
+      var ss=document.createElement("span");ss.style.cssText="color:#1a6632;font-weight:600";ss.textContent="Todos los sectores";meta.appendChild(ss);
+    }
+    info.appendChild(h3);info.appendChild(meta);
+    var btns=document.createElement("div");btns.style.cssText="display:flex;gap:6px;flex-shrink:0";
+    var eb=document.createElement("button");eb.className="btn bol bsm";eb.textContent="Editar";
+    eb.onclick=(function(id){return function(){editCap(id);};})(c.id);
+    var db2=document.createElement("button");db2.className="btn brd bsm";db2.textContent="X";
+    db2.onclick=(function(id){return function(){delCap(id);};})(c.id);
+    btns.appendChild(eb);btns.appendChild(db2);
+    row.appendChild(info);row.appendChild(btns);card.appendChild(row);cont.appendChild(card);
   });
-  return h;
+  return cont.innerHTML;
 }
 
 function newCap(){
@@ -211,6 +230,20 @@ function oCM(){
   var l1=document.createElement("label");l1.className="fl";l1.textContent="Titulo";
   var inp1=document.createElement("input");inp1.className="fi";inp1.id="cTit";inp1.placeholder="Nombre de la capacitacion";inp1.value=c.titulo||"";
   fg1.appendChild(l1);fg1.appendChild(inp1);d.appendChild(fg1);
+
+  var fgSec=document.createElement("div");fgSec.className="fg";
+  var lSec=document.createElement("label");lSec.className="fl";lSec.textContent="Sectores destinatarios";
+  var secDesc=document.createElement("div");secDesc.style.cssText="font-size:11px;color:#6b5c4e;margin-bottom:8px";secDesc.textContent="Deja todo sin marcar para que sea para todos los sectores.";
+  fgSec.appendChild(lSec);fgSec.appendChild(secDesc);
+  var sectors=["Cocina y Maestranza","Trailer y Flota Pesada","Administracion"];
+  sectors.forEach(function(sec){
+    var row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:8px;margin-bottom:6px";
+    var cb=document.createElement("input");cb.type="checkbox";cb.id="sec_"+sec.replace(/ /g,"_");cb.value=sec;cb.style.cssText="width:16px;height:16px;cursor:pointer;accent-color:#b8860b";
+    if(c.sectores&&c.sectores.indexOf(sec)>=0)cb.checked=true;
+    var lb=document.createElement("label");lb.htmlFor=cb.id;lb.style.cssText="font-size:13px;color:#3a2317;cursor:pointer";lb.textContent=sec;
+    row.appendChild(cb);row.appendChild(lb);fgSec.appendChild(row);
+  });
+  d.appendChild(fgSec);
 
   var fg2=document.createElement("div");fg2.className="fg";
   var l2=document.createElement("label");l2.className="fl";l2.textContent="Archivo PDF o PowerPoint";
@@ -262,6 +295,12 @@ function hFU(ev){
 async function saveCap(){
   var tit=document.getElementById("cTit").value.trim();
   if(!tit){alert("Ingresa un titulo.");return;}
+  var sectors=["Cocina y Maestranza","Trailer y Flota Pesada","Administracion"];
+  var selectedSectors=[];
+  sectors.forEach(function(sec){
+    var cb=document.getElementById("sec_"+sec.replace(/ /g,"_"));
+    if(cb&&cb.checked)selectedSectors.push(sec);
+  });
   var qs=S.ec.preguntas.map(function(q,qi){
     return{
       texto:document.getElementById("qt"+qi).value.trim()||q.texto,
@@ -273,7 +312,7 @@ async function saveCap(){
     if(!qs[i].texto){alert("Completa la pregunta "+(i+1)+".");return;}
     if(qs[i].opciones.some(function(o){return!o;})){alert("Completa las opciones de la pregunta "+(i+1)+".");return;}
   }
-  var cap={titulo:tit,fileData:S.ec.fileData||"",fileName:S.ec.fileName||"",fileType:S.ec.fileType||"",preguntas:qs,creado:S.ec.creado||new Date().toLocaleDateString("es-AR")};
+  var cap={titulo:tit,fileData:S.ec.fileData||"",fileName:S.ec.fileName||"",fileType:S.ec.fileType||"",preguntas:qs,sectores:selectedSectors,creado:S.ec.creado||new Date().toLocaleDateString("es-AR")};
   if(S.ec.id)cap.id=S.ec.id;
   sl("Guardando...");
   try{
@@ -319,8 +358,13 @@ function rCump(){
   }
   h+='</div>';
   S.caps.forEach(function(c){
-    var ap=S.pad.filter(function(p){var k=p.dni+"_"+c.id;return S.cump[k]&&S.cump[k].aprobado;});
-    h+='<div class="card"><div class="ctit"><span>'+esc(c.titulo)+'</span><span class="bdg bbrn">'+ap.length+'/'+S.pad.length+' aprobaron</span></div>';
+    var targetPad=S.pad.filter(function(p){
+      if(!c.sectores||c.sectores.length===0)return true;
+      return c.sectores.indexOf(p.sector)>=0;
+    });
+    var ap=targetPad.filter(function(p){var k=p.dni+"_"+c.id;return S.cump[k]&&S.cump[k].aprobado;});
+    var secLabel=c.sectores&&c.sectores.length>0?c.sectores.join(", "):"Todos los sectores";
+    h+='<div class="card"><div class="ctit"><span>'+esc(c.titulo)+'</span><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="bdg bbrn" style="font-size:10px">'+esc(secLabel)+'</span><span class="bdg bbrn">'+ap.length+'/'+targetPad.length+' aprobaron</span></div></div>';
     if(ap.length){
       h+='<div class="twrap"><table><thead><tr><th>Nombre</th><th>Sector</th><th>Nota</th><th>Fecha</th></tr></thead><tbody>';
       ap.forEach(function(p){var cu=S.cump[p.dni+"_"+c.id];h+='<tr><td>'+esc(p.nombre)+'</td><td>'+esc(p.sector)+'</td><td><span class="bdg bgn2">'+cu.nota+'%</span></td><td style="font-size:12px;color:#6b5c4e">'+(cu.fecha||"")+'</td></tr>';});
@@ -344,24 +388,32 @@ function expXL(){
 }
 
 function rUCaps(){
-  if(!S.caps.length){
-    document.getElementById("cont").innerHTML='<div class="card"><div class="empty"><div class="eico">&#128218;</div><div class="etit">Sin capacitaciones disponibles</div><p>El administrador aun no cargo capacitaciones.</p></div></div>';
+  var userSector=S.u.sector;
+  var filteredCaps=S.caps.filter(function(c){
+    if(!c.sectores||c.sectores.length===0)return true;
+    return c.sectores.indexOf(userSector)>=0;
+  });
+  if(!filteredCaps.length){
+    document.getElementById("cont").innerHTML='<div class="card"><div class="empty"><div class="eico">&#128218;</div><div class="etit">Sin capacitaciones disponibles</div><p>El administrador aun no cargo capacitaciones para tu sector.</p></div></div>';
     return;
   }
   var h='<div class="card"><div class="ctit">Capacitaciones disponibles</div>';
-  S.caps.forEach(function(c){
+  var cont=document.getElementById("cont");
+  cont.innerHTML=h;
+  filteredCaps.forEach(function(c){
     var key=S.u.dni+"_"+c.id,cu=S.cump[key],ap=!!(cu&&cu.aprobado);
-    h+='<div class="trc" onclick="verCap('+JSON.stringify(c.id)+')">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">';
-    h+='<div style="flex:1;min-width:0"><h3>'+esc(c.titulo)+'</h3>';
-    h+='<div class="tmeta">';
-    if(c.fileName)h+='<span>'+esc(c.fileName)+'</span>';
-    h+='<span>'+c.preguntas.length+' preguntas</span></div></div>';
-    h+='<span class="bdg '+(ap?"bgn2":"byl")+'">'+(ap?"Aprobada "+cu.nota+"%":"Pendiente")+'</span>';
-    h+='</div></div>';
+    var card=document.createElement("div");card.className="trc";
+    card.onclick=(function(id){return function(){verCap(id);};})(c.id);
+    var row=document.createElement("div");row.style.cssText="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px";
+    var info=document.createElement("div");info.style.cssText="flex:1;min-width:0";
+    var h3=document.createElement("h3");h3.textContent=c.titulo;
+    var meta=document.createElement("div");meta.className="tmeta";
+    if(c.fileName){var sf=document.createElement("span");sf.textContent=c.fileName;meta.appendChild(sf);}
+    var sq=document.createElement("span");sq.textContent=c.preguntas.length+" preguntas";meta.appendChild(sq);
+    info.appendChild(h3);info.appendChild(meta);
+    var bdg=document.createElement("span");bdg.className="bdg "+(ap?"bgn2":"byl");bdg.textContent=ap?"Aprobada "+cu.nota+"%":"Pendiente";
+    row.appendChild(info);row.appendChild(bdg);card.appendChild(row);cont.querySelector(".card").appendChild(card);
   });
-  h+='</div>';
-  document.getElementById("cont").innerHTML=h;
 }
 
 function verCap(id){
@@ -458,72 +510,4 @@ async function subQ(){
   var d=document.getElementById("modc");d.innerHTML="";
   var rs=document.createElement("div");rs.style.cssText="text-align:center;padding:20px 10px";
   var ico=document.createElement("div");ico.style.cssText="font-size:60px;margin-bottom:12px";ico.textContent=ap?"🎉":"😔";
-  var sc=document.createElement("div");sc.style.cssText="font-size:52px;font-weight:900;margin-bottom:6px;color:"+(ap?"#1a6632":"#8b1a1a");sc.textContent=nota+"%";
-  var tl=document.createElement("div");tl.style.cssText="font-size:18px;font-weight:800;margin-bottom:10px;color:"+(ap?"#1a6632":"#8b1a1a");tl.textContent=ap?"Aprobado!":"No aprobado";
-  var msg=document.createElement("div");msg.style.cssText="font-size:14px;color:#6b5c4e;line-height:1.5";msg.textContent=cor+" respuestas correctas de "+q.preguntas.length+". "+(ap?"Capacitacion completada!":"Se necesita 70% para aprobar.");
-  var br=document.createElement("div");br.style.cssText="margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap";
-  if(!ap){var rb=document.createElement("button");rb.className="btn bol";rb.textContent="Intentar de nuevo";var qid=q.id;rb.onclick=function(){startQ(qid);};br.appendChild(rb);}
-  var vb=document.createElement("button");vb.className="btn bbr";vb.textContent="Volver";vb.onclick=function(){cm();rUCaps();};br.appendChild(vb);
-  rs.appendChild(ico);rs.appendChild(sc);rs.appendChild(tl);rs.appendChild(msg);rs.appendChild(br);
-  d.appendChild(rs);
-  document.getElementById("mov").style.display="flex";
-}
-
-function rLogros(){
-  var u=S.u;
-  var caps=S.caps.map(function(c){var key=u.dni+"_"+c.id,cu=S.cump[key];return{c:c,cu:cu,ap:!!(cu&&cu.aprobado)};});
-  var apd=caps.filter(function(x){return x.ap;}),pend=caps.filter(function(x){return!x.ap;});
-  var pct=S.caps.length>0?Math.round((apd.length/S.caps.length)*100):0;
-  var h='<div class="card" style="text-align:center;padding:22px">';
-  h+='<div style="font-size:13px;color:#6b5c4e;font-weight:600;margin-bottom:6px">TU PROGRESO</div>';
-  h+='<div style="font-size:50px;font-weight:900;color:'+(pct===100?"#1a6632":"#3a2317")+'">'+pct+'%</div>';
-  h+='<div class="pb" style="margin:14px 0;height:10px"><div class="pf'+(pct===100?" full":"")+'" style="width:'+pct+'%"></div></div>';
-  h+='<div style="font-size:13px;color:#6b5c4e">'+apd.length+' de '+S.caps.length+' completadas</div>';
-  if(pct===100)h+='<div style="margin-top:10px;font-size:13px;font-weight:700;color:#1a6632">Completaste todas las capacitaciones!</div>';
-  h+='</div>';
-  if(apd.length){
-    h+='<div class="card"><div class="ctit">Aprobadas</div>';
-    apd.forEach(function(x){
-      h+='<div class="trc" style="cursor:default;border-color:#a8d5b5;background:#f6fbf8">';
-      h+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
-      h+='<div><h3 style="color:#1a6632">'+esc(x.c.titulo)+'</h3>';
-      h+='<div class="tmeta"><span>Nota: '+x.cu.nota+'%</span><span>'+(x.cu.fecha||"")+'</span></div></div>';
-      h+='<span class="bdg bgn2">Aprobada</span></div></div>';
-    });
-    h+='</div>';
-  }
-  if(pend.length){
-    h+='<div class="card"><div class="ctit">Pendientes</div>';
-    pend.forEach(function(x){
-      h+='<div class="trc" onclick="verCap('+JSON.stringify(x.c.id)+')">';
-      h+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
-      h+='<div><h3>'+esc(x.c.titulo)+'</h3>';
-      h+='<div class="tmeta"><span>Toca para ver y rendir</span></div></div>';
-      h+='<span class="bdg byl">Pendiente</span></div></div>';
-    });
-    h+='</div>';
-  }
-  if(!S.caps.length)h+='<div class="card"><div class="empty"><div class="eico">&#128237;</div><div class="etit">Sin capacitaciones aun</div></div></div>';
-  document.getElementById("cont").innerHTML=h;
-}
-
-function dCSV(rows,fn){
-  var lines=[];
-  rows.forEach(function(r){
-    var cells=r.map(function(c){return '"'+String(c).replace(/"/g,"''")+'"';});
-    lines.push(cells.join(","));
-  });
-  var blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement("a");
-  a.href=url;a.download=fn;a.click();
-  setTimeout(function(){URL.revokeObjectURL(url);},1000);
-}
-
-loadS().then(function(){
-  hl();
-  document.getElementById("loginScreen").style.display="flex";
-}).catch(function(ex){
-  console.error(ex);
-  document.getElementById("lmsg").textContent="Error al conectar. Recarga la pagina.";
-});
+  var sc=document.createElement("div");sc.style.css
